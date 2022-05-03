@@ -3,6 +3,11 @@ import { useState, useRef, useEffect } from 'react'
 import SliderItem from './SliderItem'
 import { dataArr } from './MainData.js'
 
+const classJoinNames = (classNames = []) => {
+  return classNames.join(" ");
+}
+
+
 function useInterval(callback, delay) {
     const savedCallback = useRef();
     useEffect(() => {
@@ -13,15 +18,26 @@ function useInterval(callback, delay) {
         function tick() {
             savedCallback.current();
         }
-        if (delay !== null) {
-            let id = setInterval(tick, delay);
-            return () => clearInterval(id);
+
+        if (delay != null) {
+          let id = setInterval(tick, delay);
+          return () => clearInterval(id);
         }
-    }, [delay]);
+    });
 }
 
 
 export default function Slider() {
+
+    const dotClickHandler = (i) => {
+      console.log(i);
+      console.log(currentIndex);
+      if (i <= currentIndex-1) {
+        setCurrentIndex(i);
+      } else {
+        setCurrentIndex(i+1);
+      }
+    }
     
     const rendingData = dataArr;
     const items = ['#4DCFE1', '#7DD1FF', '#6A26DA'];
@@ -44,27 +60,17 @@ export default function Slider() {
     }
 
     function handleSlide(index) {
-        setCurrentIndex(index);
-        if (index < 양끝에_추가될_데이터수) {
-            index += itemSize;
-            replaceSlide(index);
-        }
-        else if (index >= itemSize + 양끝에_추가될_데이터수) {
-            index -= itemSize;
-            replaceSlide(index)
-        }
-        setTransition(transitionStyle);
-    }
-
-    function handleDotSlide(currentIndex,index) {
-      if (index ===1 && currentIndex >=2) {
-        handleSlide(1);
-      } else if(index ===2 && currentIndex > 2) {
-        handleSlide(2);
-      } else {
-        handleSlide(index+1);
+      setCurrentIndex(index);
+      if (index - 양끝에_추가될_데이터수 < 0) {
+          index += itemSize;
+          replaceSlide(index)
       }
-    }
+      else if (index - 양끝에_추가될_데이터수 >= itemSize) {
+          index -= itemSize;
+          replaceSlide(index)
+      }
+      setTransition(transitionStyle);
+  }
 
     
     
@@ -102,7 +108,7 @@ export default function Slider() {
 
 
     useInterval(()=> {
-        handleSlide(currentIndex+1);
+      handleSlide(currentIndex+1);
     }, 3000);
 
 
@@ -139,13 +145,20 @@ export default function Slider() {
                     
                     <StyledButtonWrapper>
                         <StyledDotContainer>
+                            {currentIndex}
                             {items.map((item, idx)=> {
                                 return (
                                     <Dot 
+                                         className={classJoinNames([
+                                           `dot-${idx}`,
+                                           currentIndex === 1 || currentIndex === 4
+                                           ? "dot-pos-0"
+                                           : currentIndex === 2
+                                           ? "dot-pos-1"
+                                           : "dot-pos-2"
+                                         ])}
                                          key={idx}
-                                         dotIndex={currentIndex-1}
-                                         currentIndex={currentIndex}
-                                         onClick={() => handleDotSlide(currentIndex, idx)}
+                                         onClick={() => dotClickHandler(idx)}
                                          >
                                     </Dot>
                                 )
@@ -159,114 +172,12 @@ export default function Slider() {
 
 }
 
-const move1to2 = keyframes`
-  from {
-    transform: translateX(0px);
-  }
-  
-  100% { 
-    transform: translateX(16px);
-  }
-`;
-
-const move1to3 = keyframes`
-  0% {
-    transform: translateX(16px);
-  }
-  
-  100% {
-    transform: translateX(30px);
-  }
-`
-
-const move1to1 = keyframes`
-  0% {
-    transform: translateX(30px);
-  }
-  100% {
-    transform: translateX(0px);
-  }
-`
-
-const move2to1 = keyframes`
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-31px);
-  }
-`
-
-const move2to2 = keyframes`
-  0% {
-    transform: translateX(-31px);
-  }
-
-  100% {
-    transform: translateX(0px);
-  }
-`
-
-const move3to2 = keyframes`
-  0% {
-    transform: translateX(0px);
-  }
-
-  100% {
-    transform: translateX(-31px);
-  }
-`
-
-const move3to3 = keyframes`
-  0% {
-    transform: translateX(-31px);
-  }
-  100% {
-    transform: translateX(0px);
-  }
-`;
-
-const move1from3to2 = keyframes`
-  0% {
-    transform: translateX(30px);
-  }
-
-  100% {
-    transform: translateX(16px);
-  }
-`
-
-
-const fixedTow = keyframes`
-  0% {
-    transform: translateX(-31px);
-  }
-  100% {
-    transform: translateX(-31px);
-  }
-`
-
-
-
-function isBackColor(backColor) {
-  switch(backColor) {
-    case 0:
-      return '#4DCFE1'
-    case 1:
-      return '#7DD1FF'
-    case 2:
-      return '#6A26DA'
-    default :
-      return '#6A26DA'
-  }
-}
-
 
 const StyledSliderArea = styled.div`
     width: 9600px;
     height: 1008px;
-    background-color: ${(props) => isBackColor(props.backColor)};
     transition: all ease .3s 0s;
+    background-color: grey;
 `;
 const StyledSlider = styled.div``;
 const StyledSliderList = styled.div``;
@@ -295,47 +206,7 @@ const StyledDotContainer = styled.div`
     display: flex;
 `
 let isFirst = false;
-function isPosition (dotIndex, currentIndex) {
-    if (dotIndex == 0 && !isFirst){
-        return;
-    }
 
-    if (dotIndex === 1) {
-      return css`
-            &:nth-child(1){
-                animation: ${move1to2} .5s forwards;
-            }
-            &:nth-child(2){
-                animation: ${move2to1} .5s forwards;
-            }
-            `
-    }
-     else if (dotIndex === 2) {
-        return css`
-          &:nth-child(1){
-              animation: ${move1to3} .5s forwards;
-          }
-          &:nth-child(2){
-              animation: ${fixedTow} .5s forwards;
-          }
-          &:nth-child(3) {
-              animation: ${move3to2} .5s forwards;
-          }
-      `
-    } else {
-      return css`
-         &:nth-child(1){
-                animation: ${move1to1} .5s forwards;
-            }
-            &:nth-child(2) {
-                animation: ${move2to2} .5s forwards;
-            }
-            &:nth-child(3) {
-                animation: ${move3to3} .5s forwards;
-            }
-      `
-    }
-}
 
 
 const Dot = styled.div`
@@ -346,12 +217,54 @@ const Dot = styled.div`
     margin-right: 8px;
     cursor: pointer;
 
-
-    &:nth-child(1) {
-        width: 24px;
-        background-color: #00BCD4;
-        border-radius: 10px;
+    &.dot-0,
+    &.dot-1,
+    &.dot-2 {
+      position: absolute;
+      transition: all 0.3s;
     }
-    ${(props) => isPosition(props.dotIndex, props.currentIndex)};
+
+    &.dot-0 {
+      background-color: violet;
+      &.dot-pos-0 {
+        left: 0;
+      }
+
+      &.dot-pos-1 {
+        left: 24px;
+      }
+
+      &.dot-pos-2 {
+        left: 48px;
+      }
+    }
+
+    &.dot-1 {
+      &.dot-pos-0 {
+        left: 24px;
+      }
+
+      &.dot-pos-1 {
+        left: 0px;
+      }
+
+      &.dot-pos-2 {
+        left: 0px;
+      }
+    }
+    
+    &.dot-2 {
+      &.dot-pos-0 {
+        left: 48px;
+      }
+      
+      &.dot-pos-1 {
+        left: 48px;
+      }
+
+      &.dot-pos-2 {
+        left: 24px;
+      }
+    }
 
 `
